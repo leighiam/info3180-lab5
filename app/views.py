@@ -10,7 +10,7 @@ from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, current_user, login_required
 from app.forms import LoginForm
 from app.models import UserProfile
-from werkzeug.security import check_password_hash()
+from werkzeug.security import check_password_hash
 
 
 ###
@@ -28,6 +28,11 @@ def about():
     """Render the website's about page."""
     return render_template('about.html')
 
+@app.route('/secure-page')
+@login_required
+def secure_page():
+    return render_template('secure_page.html')
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -37,8 +42,8 @@ def login():
         # and not just one field
         if form.validate_on_submit():
             # Get the username and password values from the form.
-             username = form.username.data
-             password = form.password.data
+            username = form.username.data
+            password = form.password.data
             # using your model, query database for a user based on the username
             # and password submitted. Remember you need to compare the password hash.
             # You will need to import the appropriate function to do so.
@@ -61,12 +66,14 @@ def login():
 def load_user(id):
     return UserProfile.query.get(int(id))
 
-@app.route('/secure-page/')
-def secure_page():
-    if not session.get('logged_in'):
-        return redirect('/')
-    return render_template('secure_page.html')
-    
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash("Successfully logged out")
+    return redirect(url_for('home'))
+
 
 ###
 # The functions below should be applicable to all Flask apps.
